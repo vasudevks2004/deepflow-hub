@@ -48,7 +48,7 @@ const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
 
 // API Key: In this environment, we use an empty string to let the system proxy handle it.
 // For Render deployment, replace this with your actual API key or process.env.VITE_API_KEY
-const apiKey = ""; 
+const apiKey = import.meta.env.VITE_GEMINI_API_KEY; 
 
 // --- Helper Utilities ---
 const formatSeconds = (totalSeconds) => {
@@ -748,3 +748,4 @@ export default function App() {
         </div>
     );
 }
+
