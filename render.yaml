@@ -1,5 +1,5 @@
 services:
-  - type: static
+  - type: web
     name: deepflow-mastery-hub
     env: static
     runtime: static # Added for clarity
@@ -8,4 +8,5 @@ services:
     routes:
       - type: rewrite
         source: /*
+
         destination: /index.html
