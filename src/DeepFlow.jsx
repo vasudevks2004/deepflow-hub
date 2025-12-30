@@ -1,59 +1,12 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import {
-    BookOpen,
-    Code,
-    CheckCircle2,
-    Clock,
-    Calendar,
-    Plus,
-    Trash2,
-    Coffee,
-    Home,
-    MapPin,
-    BrainCircuit,
-    LayoutDashboard,
-    TrendingUp,
-    AlertCircle,
-    Play,
-    Pause,
-    RotateCcw,
-    Bell,
-    CheckSquare,
-    Square,
-    ListChecks,
-    Code2,
-    Terminal,
-    FileQuestion,
-    Send,
-    Trophy,
-    History,
-    ChevronRight,
-    Monitor,
-    Activity,
-    Lightbulb,
-    Map,
-    Zap,
-    ArrowRight,
-    RefreshCw,
-    Layers,
-    HelpCircle,
-    Target,
-    Timer,
-    Copyright,
-    ExternalLink,
-    Hourglass,
-    Link2,
-    Database,
-    Cpu,
-    Binary,
-    Wand2,
-    Sparkles,
-    CalendarDays,
-    ChevronLeft,
-    X,
-    List,
-    Sun,
-    Moon,
+    BookOpen, Code, CheckCircle2, Clock, Calendar, Plus, Trash2, Coffee,
+    Home, MapPin, BrainCircuit, LayoutDashboard, TrendingUp, AlertCircle,
+    Play, Pause, RotateCcw, Bell, CheckSquare, Square, ListChecks, Code2,
+    Terminal, FileQuestion, Send, Trophy, History, ChevronRight, Monitor,
+    Activity, Lightbulb, Map, Zap, ArrowRight, RefreshCw, Layers, HelpCircle,
+    Target, Timer, Copyright, ExternalLink, Hourglass, Link2, Database, Cpu,
+    Binary, Wand2, Sparkles, CalendarDays, ChevronLeft, X, List, Sun, Moon,
     Github
 } from 'lucide-react';
 import { initializeApp } from 'firebase/app';
@@ -72,21 +25,30 @@ import {
 } from 'firebase/auth';
 
 // --- Configuration ---
-// UPDATED: Use environment configuration to prevent auth/configuration-not-found errors
-const firebaseConfig = {
-    apiKey: "AIzaSyC8hWzWoq54azt8IFI1NGp6ExuYEOmJFJc",
-    authDomain: "deepflow-c6393.firebaseapp.com",
-    projectId: "deepflow-c6393",
-    storageBucket: "deepflow-c6393.firebasestorage.app",
-    messagingSenderId: "762884956286",
-    appId: "1:762884956286:web:e15bc408c3885f88c2782f",
-    measurementId: "G-56HCPN14QF"
+// STABILITY FIX: Use safe parsing for the config to prevent crashes if globals are missing
+const getFirebaseConfig = () => {
+    try {
+        if (typeof __firebase_config !== 'undefined') {
+            return JSON.parse(__firebase_config);
+        }
+        // Fallback placeholder (will allow UI to render but DB will fail if not replaced)
+        return { apiKey: "PLACEHOLDER", projectId: "demo" };
+    } catch (e) {
+        return { apiKey: "PLACEHOLDER", projectId: "demo" };
+    }
 };
+
+const firebaseConfig = getFirebaseConfig();
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
+
+// STABILITY FIX: Safe handling of app ID
 const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-const apiKey = "AIzaSyAU45E-HXxAVhuO_Zbl8Jf8HG1oipB4KjA"; // Set to empty string to use environment key
+
+// API Key: In this environment, we use an empty string to let the system proxy handle it.
+// For Render deployment, replace this with your actual API key or process.env.VITE_API_KEY
+const apiKey = ""; 
 
 // --- Helper Utilities ---
 const formatSeconds = (totalSeconds) => {
@@ -139,8 +101,6 @@ const MatrixBackground = ({ color = "#00ff41", isDarkMode = true }) => {
         const drops = new Array(cols).fill(1);
         
         const draw = () => {
-            // Fade effect: Use semi-transparent background to create trails
-            // Dark mode: Black fade. Light mode: White fade.
             ctx.fillStyle = isDarkMode ? 'rgba(0, 0, 0, 0.05)' : 'rgba(255, 255, 255, 0.05)';
             ctx.fillRect(0, 0, w, h);
             
@@ -178,7 +138,7 @@ export default function App() {
     const [isTimerRunning, setIsTimerRunning] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
-    const [isDarkMode, setIsDarkMode] = useState(true); // Theme State
+    const [isDarkMode, setIsDarkMode] = useState(true);
 
     const [leetTasks, setLeetTasks] = useState({ easy: [], hard: [], advanced: [] });
     const [isGeneratingLeet, setIsGeneratingLeet] = useState(false);
@@ -202,9 +162,8 @@ export default function App() {
         return Math.min(100, Math.round((studySecondsToday / goalSecs) * 100));
     }, [studySecondsToday, dailyGoalHours]);
 
-    // Force Green Theme everywhere (Dynamic based on Light/Dark)
     const currentTheme = { 
-        primary: isDarkMode ? "#00ff41" : "#059669", // Bright Green vs Darker Emerald
+        primary: isDarkMode ? "#00ff41" : "#059669", 
         bg: isDarkMode ? "bg-[#010502]" : "bg-[#f0fdf4]",
         text: isDarkMode ? "text-emerald-400" : "text-emerald-900",
         cardBg: isDarkMode ? "bg-black/60" : "bg-white/60",
@@ -382,13 +341,37 @@ export default function App() {
             try {
                 if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                     await signInWithCustomToken(auth, __initial_auth_token);
-                } else { await signInAnonymously(auth); }
+                } else { 
+                    await signInAnonymously(auth); 
+                }
             } catch (err) { console.error("Auth:", err); }
         };
         initAuth();
         const unsubscribe = onAuthStateChanged(auth, setUser);
         return () => unsubscribe();
     }, []);
+
+    // Load data when user is authenticated
+    useEffect(() => {
+        if (!user) return;
+        
+        // Define ref
+        const userSettingsRef = doc(db, 'artifacts', appId, 'users', user.uid, 'settings', 'data');
+        
+        const unsubscribe = onSnapshot(userSettingsRef, (docSnap) => {
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                if (data.learningPlan) setLearningPlan(data.learningPlan);
+                if (data.projects) setProjects(data.projects);
+                if (data.studyHistory) setStudyHistory(data.studyHistory);
+                if (data.dailyGoalHours) setDailyGoalHours(data.dailyGoalHours);
+            }
+        }, (error) => {
+             console.error("Firestore sync error:", error);
+        });
+
+        return () => unsubscribe();
+    }, [user]);
 
     const syncState = async () => {
         if (!user) return;
@@ -400,9 +383,13 @@ export default function App() {
             await setDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'settings', 'data'), {
                 studySecondsToday, dailyGoalHours, studyHistory: histCopy, projects
             }, { merge: true });
-        } catch (e) { }
+        } catch (e) { console.error("Sync error", e); }
     };
-    useEffect(() => { if (studySecondsToday > 0 && studySecondsToday % 60 === 0) syncState(); }, [studySecondsToday]);
+    
+    // Sync periodically
+    useEffect(() => { 
+        if (studySecondsToday > 0 && studySecondsToday % 60 === 0) syncState(); 
+    }, [studySecondsToday]);
 
     const renderCalendar = () => {
         const today = new Date();
@@ -761,4 +748,3 @@ export default function App() {
         </div>
     );
 }
-
