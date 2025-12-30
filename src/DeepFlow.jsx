@@ -73,12 +73,20 @@ import {
 
 // --- Configuration ---
 // UPDATED: Use environment configuration to prevent auth/configuration-not-found errors
-const firebaseConfig = JSON.parse(__firebase_config);
+const firebaseConfig = {
+    apiKey: "AIzaSyC8hWzWoq54azt8IFI1NGp6ExuYEOmJFJc",
+    authDomain: "deepflow-c6393.firebaseapp.com",
+    projectId: "deepflow-c6393",
+    storageBucket: "deepflow-c6393.firebasestorage.app",
+    messagingSenderId: "762884956286",
+    appId: "1:762884956286:web:e15bc408c3885f88c2782f",
+    measurementId: "G-56HCPN14QF"
+};
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-const apiKey = ""; // Set to empty string to use environment key
+const apiKey = "AIzaSyAU45E-HXxAVhuO_Zbl8Jf8HG1oipB4KjA"; // Set to empty string to use environment key
 
 // --- Helper Utilities ---
 const formatSeconds = (totalSeconds) => {
@@ -753,3 +761,4 @@ export default function App() {
         </div>
     );
 }
+
